@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "textures": ["ui_circle.png"],
+  "pixelsPerUnit": 100,
+  "frameKeys": ["Circle"],
+  "frames": [
+    {
+      "name": "Circle",
+      "rect": [0, 0, 512, 512],
+      "pivot": [0.5, 0.5],
+      "border": [256, 256, 256, 256]
+    }
+  ],
+  "atlas": false
+}

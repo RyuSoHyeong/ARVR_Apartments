@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>AR Gaussian Splatting</title>
+  <meta charset="utf-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="assets/web/asset.css"/>
+</head>
+<body>
+  <canvas id="application-canvas"></canvas>
+  <script src="playcanvas.min.js"></script>
+  <script type="module" src="main.js"></script>
+  <div id="start-screen">
+    <div id="start-AR-image"></div>
+    <div id="start-AR" class="button" role="button" tabindex="0" aria-label="StartAR" alt="Start AR">Launch</div>
+    <div id="start-VR-image"></div>
+    <div id="start-VR" class="button" role="button" tabindex="0" aria-label="StartAR" alt="Start AR">Launch</div>
+  </div>
+  <div id="logo">류소형</div>
+  <script>
+    function resizeCanvasForiOS() {
+        const canvas = document.getElementById('application-canvas');
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+    }
+    window.addEventListener('resize', resizeCanvasForiOS);
+    window.addEventListener('orientationchange', resizeCanvasForiOS);
+    resizeCanvasForiOS();
+  </script>
+</body>
+</html>
