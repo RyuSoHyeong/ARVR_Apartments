@@ -5,6 +5,9 @@ import { startVR } from './assets/scripts/startVR.js';
 import { createXrMovement } from './assets/scripts/xrMovement.js';
 
 const canvas = document.getElementById('application-canvas');
+if (canvas) {
+  canvas.style.touchAction = 'none';
+}
 window.focus();
 
 pc.WasmModule.setConfig('Ammo', {
@@ -124,7 +127,11 @@ async function initApp() {
             const xrMove = createXrMovement(app, params.Camera, params.Root, {
                 movementSpeed: 1.6,
                 snapAngleDeg: 45,
-                smoothRotate: false
+                smoothRotate: false,
+                rotationMode: 'aroundCamera',
+                allowGamepadFallback: true,
+                smoothRotateSpeedDeg: 140,
+                axesRemapExplicit: { left:[0,1], rightX:2 }
             });
             xrMove.disable();
             await startAR(app, params.Camera, params.Root, params.target, params.Room, params.textUnavailable, params.textTutorial2D, params.Screen2D, params.Screen3D, params.textTutorial3D, { onPlacementDone: () => xrMove.enable() });
@@ -140,10 +147,14 @@ async function initApp() {
             const xrMove = createXrMovement(app, params.Camera, params.Root, {
                 movementSpeed: 1.6,
                 snapAngleDeg: 45,
-                smoothRotate: false
+                smoothRotate: true,
+                rotationMode: 'aroundCamera',
+                allowGamepadFallback: true,
+                smoothRotateSpeedDeg: 140,
+                axesRemapExplicit: { left:[0,1], rightX:2 }
             });
-            xrMove.disable();
-            await startVR(app, params.Camera, params.Root, params.target, params.Room, params.textUnavailable, params.textTutorial3D, params.Screen3D, { onPlacementDone: () => xrMove.enable(), assetMap});
+            xrMove.enable();
+            await startVR(app, params.Camera, params.Root, params.target, params.Room, params.textUnavailable, params.textTutorial3D, params.Screen3D, { assetMap });
         });
     });
 };
@@ -317,6 +328,7 @@ function startApp(onSceneReady) {
 
         const opt = (hx, hy, hz) => ({ type: 'box', halfExtents: new pc.Vec3(hx, hy, hz)});
 
+        app.once("update", () => {
         Bedroom_1_Trigger.addComponent('collision', opt(1.6, 4, 2.2));
         Bedroom_2_Trigger.addComponent('collision', opt(1.45, 4, 2));
         Guerstroom_Trigger.addComponent('collision', opt(1.9, 4, 1.65));
@@ -345,7 +357,39 @@ function startApp(onSceneReady) {
         Bedroom_2_Balcony_Trigger.script.create('triggerObjectActivator', { attributes: { targetEntities: [Bedroom_2_Balcony, Bedroom_2, Bedroom_1] }});
         Toilet_Trigger.script.create('triggerObjectActivator', { attributes: { targetEntities: [Toilet, Bedroom_2, Bedroom_1, Kitchen, Guestroom] }});
         Corridor_1_Trigger.script.create('triggerObjectActivator', { attributes: { targetEntities: [Bedroom_2, Bedroom_1, Kitchen, Guestroom, Toilet, Bedroom_2_Balcony] }});
-        Corridor_2_Trigger.script.create('triggerObjectActivator', { attributes: { targetEntities: [Kitchen, Kitchen_Balcony, Guestroom, Corridor, Bedroom_1, Toilet] }});
+        Corridor_2_Trigger.script.create('triggerObjectActivator', { attributes: { targetEntities: [Kitchen, Kitchen_Balcony, Guestroom, Bedroom_1, Bedroom_2, Toilet] }});
+        });
+
+        function setSplatCustomAabbFromTrigger(triggerEnt, splatEnt, scale = 1) {
+            if (!triggerEnt?.collision) return;
+
+            const he = triggerEnt.collision.halfExtents;
+            const half = new pc.Vec3(he.x * scale, he.y * scale, he.z * scale);
+
+            const centerWorld = triggerEnt.getPosition().clone();
+            const aabbWorld = new pc.BoundingBox(centerWorld, half);
+
+            let applied = false;
+
+            if (splatEnt.gsplat && 'customAabb' in splatEnt.gsplat) {
+                splatEnt.gsplat.customAabb = aabbWorld;
+                applied = true;
+            }
+
+            if (!applied && splatEnt.render) {
+                splatEnt.render.customAabb = aabbWorld;
+                applied = true;
+            }
+        }
+
+        setSplatCustomAabbFromTrigger(Bedroom_1_Trigger, Bedroom_1, 1);
+        setSplatCustomAabbFromTrigger(Bedroom_2_Trigger, Bedroom_2, 1);
+        setSplatCustomAabbFromTrigger(Bedroom_2_Balcony_Trigger, Bedroom_2_Balcony, 1);
+        setSplatCustomAabbFromTrigger(Guerstroom_Trigger, Guestroom, 1);
+        setSplatCustomAabbFromTrigger(Kitchen_Trigger, Kitchen, 1);
+        setSplatCustomAabbFromTrigger(Kitchen_Balcony_Trigger, Kitchen_Balcony, 1);
+        setSplatCustomAabbFromTrigger(Toilet_Trigger, Toilet, 1);
+        setSplatCustomAabbFromTrigger(Corridor_1_Trigger, Corridor, 1);
 
         const { Screen2D, textUnavailable, textTutorial2D, Screen3D, textTutorial3D } = createUI(assetMap);
         app.root.addChild(Screen2D);
